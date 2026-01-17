@@ -24,6 +24,7 @@ from app.models import user  # noqa
 import app.core.cloudinary  # noqa
 
 
+
 app = FastAPI(title="MyVegiz API")
 
 
@@ -97,4 +98,3 @@ async def pydantic_validation_exception_handler(
 # Base.metadata.create_all(bind=engine)
 
 app.include_router(api_router, prefix="/api/v1")
-
