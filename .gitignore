@@ -1,5 +1,15 @@
-
 # Virtual environment
 # Python virtual environment
 venv/
 .env/
+
+
+**/__pycache__/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.sqlite3
+*.zip
