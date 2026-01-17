@@ -11,6 +11,8 @@ from fastapi import Depends
 
 from app.schemas.user import UserUpdate 
 from app.services.user_service import update_user
+from app.services.user_service import soft_delete_user
+
 
 router = APIRouter()
 
@@ -47,11 +49,11 @@ def list_users(db: Session = Depends(get_db)):
 
 
 
-@router.put("/update/{user_id}", response_model=APIResponse[UserResponse])
+@router.put("/update", response_model=APIResponse[UserResponse])
 def update_user_api(
-    user_id: int,
-    profile_image: UploadFile = File(None),   # ✅ FIRST
-    user: UserUpdate = Depends(UserUpdate.as_form),  # ✅ AFTER
+    user_id: int,  # query parameter
+    profile_image: UploadFile = File(None),
+    user: UserUpdate = Depends(UserUpdate.as_form),
     db: Session = Depends(get_db)
 ):
     updated_user = update_user(db, user_id, user, profile_image)
@@ -60,4 +62,19 @@ def update_user_api(
         "status": 200,
         "message": "User updated successfully",
         "data": updated_user
+    }
+
+
+
+@router.delete("/delete", response_model=APIResponse[UserResponse])
+def delete_user_api(
+    user_id: int,  # query parameter
+    db: Session = Depends(get_db)
+):
+    deleted_user = soft_delete_user(db, user_id)
+
+    return {
+        "status": 200,
+        "message": "User deleted successfully",
+        "data": deleted_user
     }
