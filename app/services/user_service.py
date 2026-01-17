@@ -17,6 +17,8 @@ from fastapi import UploadFile
 import cloudinary.uploader
 from fastapi import UploadFile
 
+from sqlalchemy.sql import func
+
 
 MAX_IMAGE_SIZE = 1 * 1024 * 1024  # 1MB
 ALLOWED_TYPES = ["image/jpeg", "image/png", "image/jpg"]
@@ -180,3 +182,28 @@ def update_user(
     except IntegrityError:
         db.rollback()
         raise AppException(status=500, message="Database error while updating user")
+
+
+
+
+
+def soft_delete_user(db: Session, user_id: int):
+    user = db.query(User).filter(
+        User.id == user_id,
+        User.is_delete == False
+    ).first()
+
+    if not user:
+        raise AppException(status=404, message="User not found")
+
+    user.is_delete = True
+    user.is_active = False
+    user.deleted_at = func.now()
+
+    try:
+        db.commit()
+        db.refresh(user)
+        return user
+    except IntegrityError:
+        db.rollback()
+        raise AppException(status=500, message="Database error while deleting user")
