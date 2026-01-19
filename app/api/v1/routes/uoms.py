@@ -11,14 +11,16 @@ from app.services.uom_service import (
     update_uom,
     soft_delete_uom
 )
-
+from app.api.dependencies import get_current_user
+from app.models.user import User
 router = APIRouter()
 
 
 @router.post("/create", response_model=APIResponse[UOMResponse])
 def add_uom(
     uom: UOMCreate = Depends(UOMCreate.as_form),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     result = create_uom(db, uom)
     return {
@@ -29,7 +31,10 @@ def add_uom(
 
 
 @router.get("/list", response_model=APIResponse[List[UOMResponse]])
-def list_uoms(request: Request, db: Session = Depends(get_db)):
+def list_uoms(
+    request: Request, db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     if request.query_params:
         return {
             "status": 400,
@@ -49,7 +54,8 @@ def list_uoms(request: Request, db: Session = Depends(get_db)):
 def update_uom_api(
     uom_id: int,
     uom: UOMUpdate = Depends(UOMUpdate.as_form),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     result = update_uom(db, uom_id, uom)
     return {
@@ -62,7 +68,8 @@ def update_uom_api(
 @router.delete("/delete", response_model=APIResponse[UOMResponse])
 def delete_uom_api(
     uom_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     result = soft_delete_uom(db, uom_id)
     return {

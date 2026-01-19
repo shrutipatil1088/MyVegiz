@@ -14,13 +14,17 @@ from app.services.user_service import update_user
 from app.services.user_service import soft_delete_user
 
 
+from app.api.dependencies import get_current_user
+from app.models.user import User
 router = APIRouter()
 
 
 @router.post("/create",response_model=APIResponse[UserResponse])
-def add_user(user: UserCreate = Depends(UserCreate.as_form),
-             profile_image: UploadFile = File(None), 
-             db: Session = Depends(get_db)
+def add_user(
+    user: UserCreate = Depends(UserCreate.as_form),
+    profile_image: UploadFile = File(None), 
+    db: Session = Depends(get_db),    
+    current_user: User = Depends(get_current_user)
 ):
     user = create_user(db, user, profile_image)
     return {
@@ -31,7 +35,10 @@ def add_user(user: UserCreate = Depends(UserCreate.as_form),
 
 
 @router.get("/list",response_model=APIResponse[List[UserResponse]])
-def list_users(db: Session = Depends(get_db)):
+def list_users(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     users = get_users(db)
 
     if not users:
@@ -54,7 +61,9 @@ def update_user_api(
     user_id: int,  # query parameter
     profile_image: UploadFile = File(None),
     user: UserUpdate = Depends(UserUpdate.as_form),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+
 ):
     updated_user = update_user(db, user_id, user, profile_image)
 
@@ -69,7 +78,9 @@ def update_user_api(
 @router.delete("/delete", response_model=APIResponse[UserResponse])
 def delete_user_api(
     user_id: int,  # query parameter
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+
 ):
     deleted_user = soft_delete_user(db, user_id)
 
