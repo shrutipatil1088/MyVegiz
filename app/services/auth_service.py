@@ -10,6 +10,7 @@ from app.core.security import (
     SECRET_KEY,
     ALGORITHM
 )
+from app.models.token_blacklist import TokenBlacklist
 
 def login_user(db: Session, email: str, password: str):
     user = db.query(User).filter(
@@ -40,6 +41,13 @@ def login_user(db: Session, email: str, password: str):
 
 
 def refresh_access_token(refresh_token: str):
+    blacklisted = db.query(TokenBlacklist).filter(
+        TokenBlacklist.token == refresh_token
+    ).first()
+
+    if blacklisted:
+        raise AppException(status=401, message="Refresh token expired. Please login again")
+
     try:
         payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
 

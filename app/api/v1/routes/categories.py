@@ -11,6 +11,8 @@ from app.services.category_service import create_category, get_categories
 from app.services.category_service import update_category
 from app.services.category_service import soft_delete_category
 
+from app.api.dependencies import get_current_user
+from app.models.user import User
 router = APIRouter()
 
 
@@ -18,7 +20,9 @@ router = APIRouter()
 def add_category(
     category: CategoryCreate = Depends(CategoryCreate.as_form),
     category_image: UploadFile = File(None),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+
 ):
     new_category = create_category(db, category, category_image)
 
@@ -31,7 +35,8 @@ def add_category(
 
 @router.get("/list", response_model=APIResponse[List[CategoryResponse]])
 def list_categories(request: Request,
-db: Session = Depends(get_db)):
+db: Session = Depends(get_db),current_user: User = Depends(get_current_user)
+):
 
     if request.query_params:
         return {
@@ -67,7 +72,9 @@ def update_category_api(
     category_id: int,  # query param
     category: CategoryUpdate = Depends(CategoryUpdate.as_form),
     category_image: UploadFile = File(None),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),    
+    current_user: User = Depends(get_current_user)
+
 ):
     updated_category = update_category(
         db,
@@ -89,7 +96,9 @@ def update_category_api(
 @router.delete("/delete", response_model=APIResponse[CategoryResponse])
 def delete_category_api(
     category_id: int,  # query parameter
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+
 ):
     deleted_category = soft_delete_category(db, category_id)
 

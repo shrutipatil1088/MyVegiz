@@ -11,7 +11,7 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 from app.db.base import Base
 from app.core.config import DATABASE_URL
-from app.models import user,category,product,uom # IMPORTANT: import models
+from app.models import user,category,product,uom,token_blacklist # IMPORTANT: import models
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

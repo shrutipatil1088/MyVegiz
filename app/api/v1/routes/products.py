@@ -16,6 +16,8 @@ from app.services.product_service import (
     update_product,
     soft_delete_product
 )
+from app.api.dependencies import get_current_user
+from app.models.user import User
 
 router = APIRouter()
 
@@ -24,7 +26,9 @@ router = APIRouter()
 def add_product(
     product: ProductCreate = Depends(ProductCreate.as_form),
     product_image: UploadFile = File(None),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+
 ):
     data = create_product(db, product, product_image)
     return {
@@ -35,7 +39,9 @@ def add_product(
 
 
 @router.get("/list", response_model=APIResponse[List[ProductResponse]])
-def list_products(db: Session = Depends(get_db)):
+def list_products(db: Session = Depends(get_db),   
+    current_user: User = Depends(get_current_user)
+):
     data = get_products(db)
     return {
         "status": 200,
@@ -44,26 +50,15 @@ def list_products(db: Session = Depends(get_db)):
     }
 
 
-# @router.put("/update", response_model=APIResponse[ProductResponse])
-# def update_product_api(
-#     product_id: int,
-#     product: ProductUpdate,
-#     product_image: UploadFile = File(None),
-#     db: Session = Depends(get_db)
-# ):
-#     data = update_product(db, product_id, product, product_image)
-#     return {
-#         "status": 200,
-#         "message": "Product updated successfully",
-#         "data": data
-#     }
 
 @router.put("/update", response_model=APIResponse[ProductResponse])
 def update_product_api(
     product_id: int,
-    product_image: UploadFile = File(None),   # ✅ FIRST
-    product: ProductUpdate = Depends(ProductUpdate.as_form),  # ✅ NOW EXISTS
-    db: Session = Depends(get_db)
+    product_image: UploadFile = File(None),  
+    product: ProductUpdate = Depends(ProductUpdate.as_form),  
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+
 ):
     updated_product = update_product(db, product_id, product, product_image)
 
@@ -77,7 +72,9 @@ def update_product_api(
 @router.delete("/delete", response_model=APIResponse[ProductResponse])
 def delete_product_api(
     product_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+
 ):
     data = soft_delete_product(db, product_id)
     return {

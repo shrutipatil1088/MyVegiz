@@ -1,10 +1,12 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends,Header
 from sqlalchemy.orm import Session
+from app.api.dependencies import get_current_user
 
 from app.api.dependencies import get_db
 from app.schemas.auth import LoginRequest, LoginResponse, RefreshTokenRequest
 from app.schemas.response import APIResponse
 from app.services.auth_service import login_user, refresh_access_token
+from app.models.token_blacklist import TokenBlacklist
 
 router = APIRouter()
 
@@ -21,8 +23,9 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/refresh", response_model=APIResponse[dict])
-def refresh_token(payload: RefreshTokenRequest):
-    data = refresh_access_token(payload.refresh_token)
+def refresh_token(payload: RefreshTokenRequest,db: Session = Depends(get_db)
+):
+    data = refresh_access_token(payload.refresh_token,db)
     return {
         "status": 200,
         "message": "Token refreshed",
@@ -31,9 +34,36 @@ def refresh_token(payload: RefreshTokenRequest):
 
 
 
+# @router.post("/logout", response_model=APIResponse[None])
+# def logout(current_user = Depends(get_current_user) ):
+#     # Stateless logout (frontend deletes tokens)
+#     return {
+#         "status": 200,
+#         "message": "Logged out successfully",
+#         "data": None
+#     }
+
+
 @router.post("/logout", response_model=APIResponse[None])
-def logout():
-    # Stateless logout (frontend deletes tokens)
+def logout(
+    authorization: str = Header(...),
+    refresh_token: str = Header(...),
+    db: Session = Depends(get_db)
+):
+    access_token = authorization.split(" ")[1]
+
+    tokens = [access_token, refresh_token]
+
+    for token in tokens:
+        exists = db.query(TokenBlacklist).filter(
+            TokenBlacklist.token == token
+        ).first()
+
+        if not exists:
+            db.add(TokenBlacklist(token=token))
+
+    db.commit()
+
     return {
         "status": 200,
         "message": "Logged out successfully",
