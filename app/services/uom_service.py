@@ -41,6 +41,7 @@ def create_uom(db: Session, uom: UOMCreate):
 
 
     db_uom = UOM(
+        uu_id=str(uuid.uuid4()),
         uom_code=uom_code,
         uom_name=uom.uom_name,
         uom_short_name=uom.uom_short_name,
@@ -66,9 +67,9 @@ def get_uoms(db: Session):
 
 
 # ---------- UPDATE ----------
-def update_uom(db: Session, uom_id: int, data: UOMUpdate):
+def update_uom(db: Session, uu_id: str, data: UOMUpdate):
     uom = db.query(UOM).filter(
-        UOM.id == uom_id,
+        UOM.uu_id  == uu_id ,
         UOM.is_delete == False
     ).first()
 
@@ -81,7 +82,7 @@ def update_uom(db: Session, uom_id: int, data: UOMUpdate):
     if data.uom_name:
         name_exists = db.query(UOM).filter(
             UOM.uom_name == data.uom_name,
-            UOM.id != uom_id,
+            UOM.uu_id  != uu_id ,
             UOM.is_delete == False
         ).first()
 
@@ -95,7 +96,7 @@ def update_uom(db: Session, uom_id: int, data: UOMUpdate):
     if data.uom_short_name:
         short_exists = db.query(UOM).filter(
             UOM.uom_short_name == data.uom_short_name,
-            UOM.id != uom_id,
+            UOM.uu_id  != uu_id ,
             UOM.is_delete == False
         ).first()
 
@@ -124,9 +125,9 @@ def update_uom(db: Session, uom_id: int, data: UOMUpdate):
 
 
 # ---------- DELETE ----------
-def soft_delete_uom(db: Session, uom_id: int):
+def soft_delete_uom(db: Session, uu_id: str):
     uom = db.query(UOM).filter(
-        UOM.id == uom_id,
+        UOM.uu_id  == uu_id ,
         UOM.is_delete == False
     ).first()
 

@@ -18,6 +18,7 @@ import cloudinary.uploader
 from fastapi import UploadFile
 
 from sqlalchemy.sql import func
+import uuid
 
 
 MAX_IMAGE_SIZE = 1 * 1024 * 1024  # 1MB
@@ -82,6 +83,7 @@ def create_user(db: Session, user: UserCreate, profile_image: UploadFile = None)
             )
     
     db_user = User(
+        uu_id=str(uuid.uuid4()),  
         name=user.name,
         email=user.email,
         contact=user.contact,
@@ -120,12 +122,12 @@ def get_users(db: Session):
 
 def update_user(
     db: Session,
-    user_id: int,
+    uu_id: str,
     user_data: UserUpdate,
     profile_image: UploadFile = None
 ):
     db_user = db.query(User).filter(
-        User.id == user_id,
+        User.uu_id == uu_id,
         User.is_delete == False
     ).first()
 
@@ -142,7 +144,7 @@ def update_user(
             User.email == user_data.email,
             User.is_delete == False,
             User.is_active == True,
-            User.id != user_id
+            User.id != db_user.id,
         ).first()
 
         if email_exists:
@@ -156,7 +158,7 @@ def update_user(
             User.contact == user_data.contact,
             User.is_delete == False,
             User.is_active == True,
-            User.id != user_id
+            User.id != db_user.id,
         ).first()
 
         if contact_exists:
@@ -187,9 +189,9 @@ def update_user(
 
 
 
-def soft_delete_user(db: Session, user_id: int):
+def soft_delete_user(db: Session,  uu_id: str):
     user = db.query(User).filter(
-        User.id == user_id,
+        User.uu_id == uu_id,
         User.is_delete == False
     ).first()
 

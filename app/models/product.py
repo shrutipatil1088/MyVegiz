@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime,ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, DateTime,ForeignKey,Text
 from sqlalchemy.sql import func
 from app.db.base import Base
+from sqlalchemy.orm import relationship
 
 
 class Product(Base):
@@ -14,7 +15,14 @@ class Product(Base):
     )
     product_name = Column(String(255), nullable=False)
     product_short_name = Column(String(255), index=True, nullable=False)
-    product_image = Column(String(255), nullable=True)
+    
+    uu_id = Column(String(255), unique=True, index=True, nullable=False)
+    slug = Column(String(255), index=True, nullable=False)
+    # ✅ OPTIONAL (matches requirement)
+    short_description = Column(String(255), nullable=True)
+    long_description = Column(Text, nullable=True)
+    hsm_code = Column(String(255), nullable=True)
+    sku_code = Column(String(255), nullable=True)
 
     is_active = Column(Boolean, default=True)
     is_delete = Column(Boolean, default=False)
@@ -24,3 +32,11 @@ class Product(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     deleted_at = Column(DateTime(timezone=True), nullable=True)
     
+
+    # ✅ ADD THIS
+    images = relationship(
+        "ProductImage",
+        backref="product",
+        cascade="all, delete-orphan"
+    )
+

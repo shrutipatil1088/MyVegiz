@@ -7,6 +7,8 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
+    uu_id = Column(String(255), unique=True, index=True, nullable=False)
+
     name = Column(String(255), nullable=False)
     email = Column(String(255),index=True, nullable=False)
     contact = Column(String(20), nullable=True)

@@ -99,6 +99,7 @@ class UOMUpdate(BaseModel):
 
 class UOMResponse(BaseModel):
     id: int
+    uu_id: str
     uom_code: str
     uom_name: str
     uom_short_name: str

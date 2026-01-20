@@ -52,12 +52,12 @@ def list_uoms(
 
 @router.put("/update", response_model=APIResponse[UOMResponse])
 def update_uom_api(
-    uom_id: int,
+    uu_id: str,
     uom: UOMUpdate = Depends(UOMUpdate.as_form),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    result = update_uom(db, uom_id, uom)
+    result = update_uom(db, uu_id , uom)
     return {
         "status": 200,
         "message": "UOM updated successfully",
@@ -67,11 +67,11 @@ def update_uom_api(
 
 @router.delete("/delete", response_model=APIResponse[UOMResponse])
 def delete_uom_api(
-    uom_id: int,
+    uu_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    result = soft_delete_uom(db, uom_id)
+    result = soft_delete_uom(db, uu_id)
     return {
         "status": 200,
         "message": "UOM deleted successfully",

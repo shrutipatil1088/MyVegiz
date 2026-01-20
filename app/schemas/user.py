@@ -82,6 +82,7 @@ class UserCreate(BaseModel):
 
 class UserResponse(BaseModel):
     id: int
+    uu_id: str
     name: str
     email: EmailStr
     contact: Optional[str]

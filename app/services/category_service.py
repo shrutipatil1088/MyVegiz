@@ -104,12 +104,12 @@ def generate_slug(name: str) -> str:
 
 def update_category(
     db: Session,
-    category_id: int,
+    uu_id: str,
     category_data: CategoryUpdate,
     category_image: UploadFile = None
 ):
     category = db.query(Category).filter(
-        Category.id == category_id,
+        Category.uu_id == uu_id,
         Category.is_delete == False
     ).first()
 
@@ -123,7 +123,7 @@ def update_category(
         slug_exists = db.query(Category).filter(
             Category.slug == new_slug,
             Category.is_delete == False,
-            Category.id != category_id
+            Category.uu_id != uu_id 
         ).first()
 
         if slug_exists:
@@ -159,14 +159,18 @@ def update_category(
 
 
 
-def soft_delete_category(db: Session, category_id: int):
+def soft_delete_category(db: Session, uu_id: str):
     category = db.query(Category).filter(
-        Category.id == category_id,
+        Category.uu_id == uu_id,
         Category.is_delete == False
     ).first()
 
     if not category:
         raise AppException(status=404, message="Category not found")
+
+    # # ✅ already deleted
+    # if category.is_delete:
+    #     return category   # or raise custom message
 
     category.is_delete = True
     category.is_active = False

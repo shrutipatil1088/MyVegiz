@@ -108,14 +108,14 @@ def list_users(
 
 @router.put("/update", response_model=APIResponse[UserResponse])
 def update_user_api(
-    user_id: int,  # query parameter
+    uu_id: str,  # ✅ STRING UUID
     profile_image: UploadFile = File(None),
     user: UserUpdate = Depends(UserUpdate.as_form),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 
 ):
-    updated_user = update_user(db, user_id, user, profile_image)
+    updated_user = update_user(db, uu_id, user, profile_image)
 
     return {
         "status": 200,
@@ -127,12 +127,12 @@ def update_user_api(
 
 @router.delete("/delete", response_model=APIResponse[UserResponse])
 def delete_user_api(
-    user_id: int,  # query parameter
+    uu_id: str,  # ✅ STRING UUID
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 
 ):
-    deleted_user = soft_delete_user(db, user_id)
+    deleted_user = soft_delete_user(db, uu_id)
 
     return {
         "status": 200,

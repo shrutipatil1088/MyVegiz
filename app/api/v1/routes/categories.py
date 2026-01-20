@@ -69,7 +69,7 @@ db: Session = Depends(get_db),current_user: User = Depends(get_current_user)
 
 @router.put("/update", response_model=APIResponse[CategoryResponse])
 def update_category_api(
-    category_id: int,  # query param
+    uu_id: str,  # query param
     category: CategoryUpdate = Depends(CategoryUpdate.as_form),
     category_image: UploadFile = File(None),
     db: Session = Depends(get_db),    
@@ -78,7 +78,7 @@ def update_category_api(
 ):
     updated_category = update_category(
         db,
-        category_id,
+        uu_id,
         category,
         category_image
     )
@@ -95,12 +95,12 @@ def update_category_api(
 
 @router.delete("/delete", response_model=APIResponse[CategoryResponse])
 def delete_category_api(
-    category_id: int,  # query parameter
+    uu_id: str,   # query parameter
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 
 ):
-    deleted_category = soft_delete_category(db, category_id)
+    deleted_category = soft_delete_category(db, uu_id)
 
     return {
         "status": 200,
