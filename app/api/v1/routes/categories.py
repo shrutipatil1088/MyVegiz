@@ -5,7 +5,7 @@ from fastapi import Request
 
 from app.api.dependencies import get_db
 from app.schemas.category import CategoryCreate, CategoryResponse,CategoryUpdate
-from app.schemas.response import APIResponse
+from app.schemas.response import APIResponse,PaginatedAPIResponse
 from app.services.category_service import create_category, get_categories
 
 from app.services.category_service import update_category
@@ -13,7 +13,13 @@ from app.services.category_service import soft_delete_category
 
 from app.api.dependencies import get_current_user
 from app.models.user import User
+from app.models.category import Category
 router = APIRouter()
+
+
+# Pagination
+from fastapi import Query
+import math
 
 
 @router.post("/create", response_model=APIResponse[CategoryResponse])
@@ -33,35 +39,73 @@ def add_category(
     }
 
 
-@router.get("/list", response_model=APIResponse[List[CategoryResponse]])
-def list_categories(request: Request,
-db: Session = Depends(get_db),current_user: User = Depends(get_current_user)
+
+@router.get("/list", response_model=PaginatedAPIResponse[List[CategoryResponse]])
+def list_categories(
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
+    try:
+        # -------------------------------
+        # Pagination calculation
+        # -------------------------------
+        offset = (page - 1) * limit
 
-    if request.query_params:
-        return {
-            "status": 400,
-            "message": "Query parameters are not allowed for this API",
-            "data": []
+        # -------------------------------
+        # Base query (soft delete aware)
+        # -------------------------------
+        base_query = db.query(Category).filter(
+            Category.is_delete == False
+        ).order_by(Category.created_at.desc())
+
+        total_records = base_query.count()
+
+        categories = base_query.offset(offset).limit(limit).all()
+
+        # -------------------------------
+        # Pagination metadata
+        # -------------------------------
+        total_pages = math.ceil(total_records / limit) if limit else 1
+
+        pagination = {
+            "total": total_records,
+            "per_page": limit,
+            "current_page": page,
+            "total_pages": total_pages,
         }
 
+        # -------------------------------
+        # Response
+        # -------------------------------
+        if categories:
+            return {
+                "status": 200,
+                "message": "Categories fetched successfully",
+                "data": categories,
+                "pagination": pagination
+            }
 
-    categories = get_categories(db)
-
-    if not categories:
         return {
-            "status": 200,
+            "status": 300,
             "message": "No categories found",
-            "data": []
+            "data": [],
+            "pagination": pagination
         }
 
-    return {
-        "status": 200,
-        "message": "Categories fetched successfully",
-        "data": categories
-    }
-
-
+    except Exception as e:
+        return {
+            "status": 500,
+            "message": "Failed to fetch categories",
+            "data": [],
+            "pagination": {
+                "total": 0,
+                "per_page": limit,
+                "current_page": page,
+                "total_pages": 0
+            }
+        }
 
 
 

@@ -93,6 +93,13 @@ from typing import List
 from app.api.dependencies import get_db, get_current_user
 from app.schemas.product import ProductCreate, ProductUpdate, ProductResponse
 from app.schemas.response import APIResponse
+from app.api.dependencies import get_db
+from app.schemas.product import (
+    ProductCreate,
+    ProductUpdate,
+    ProductResponse
+)
+from app.schemas.response import APIResponse,PaginatedAPIResponse
 from app.services.product_service import (
     create_product,
     get_products,
@@ -100,8 +107,13 @@ from app.services.product_service import (
     soft_delete_product
 )
 from app.models.user import User
+from app.models.product import Product
 
 router = APIRouter()
+
+# Pagination
+from fastapi import Query
+import math
 
 
 @router.post("/create", response_model=APIResponse[ProductResponse])
@@ -115,12 +127,74 @@ def add_product(
     return {"status": 201, "message": "Product created successfully", "data": data}
 
 
-@router.get("/list", response_model=APIResponse[List[ProductResponse]])
+
+@router.get("/list", response_model=PaginatedAPIResponse[List[ProductResponse]])
 def list_products(
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    return {"status": 200, "message": "Products fetched successfully", "data": get_products(db)}
+    try:
+        # -------------------------------
+        # Pagination calculation
+        # -------------------------------
+        offset = (page - 1) * limit
+
+        # -------------------------------
+        # Base query (soft delete aware)
+        # -------------------------------
+        base_query = db.query(Product).filter(
+            Product.is_delete == False
+        ).order_by(Product.created_at.desc())
+
+        total_records = base_query.count()
+
+        products = base_query.offset(offset).limit(limit).all()
+
+        # -------------------------------
+        # Pagination metadata
+        # -------------------------------
+        total_pages = math.ceil(total_records / limit) if limit else 1
+
+        pagination = {
+            "total": total_records,
+            "per_page": limit,
+            "current_page": page,
+            "total_pages": total_pages,
+        }
+
+        # -------------------------------
+        # Response
+        # -------------------------------
+        if products:
+            return {
+                "status": 200,
+                "message": "Products fetched successfully",
+                "data": products,
+                "pagination": pagination
+            }
+
+        return {
+            "status": 300,
+            "message": "No products found",
+            "data": [],
+            "pagination": pagination
+        }
+
+    except Exception as e:
+        return {
+            "status": 500,
+            "message": "Failed to fetch products",
+            "data": [],
+            "pagination": {
+                "total": 0,
+                "per_page": limit,
+                "current_page": page,
+                "total_pages": 0
+            }
+        }
+
 
 
 @router.put("/update", response_model=APIResponse[ProductResponse])
