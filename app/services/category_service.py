@@ -168,10 +168,7 @@ def soft_delete_category(db: Session, uu_id: str):
     if not category:
         raise AppException(status=404, message="Category not found")
 
-    # # ✅ already deleted
-    # if category.is_delete:
-    #     return category   # or raise custom message
-
+ 
     category.is_delete = True
     category.is_active = False
     category.deleted_at = func.now()
