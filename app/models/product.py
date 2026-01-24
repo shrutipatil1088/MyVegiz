@@ -13,15 +13,21 @@ class Product(Base):
         ForeignKey("categories.id"),
         index=True
     )
+    sub_category_id = Column(
+        Integer,
+        ForeignKey("sub_categories.id"),
+        nullable=True, 
+        index=True
+    )
     product_name = Column(String(255), nullable=False)
     product_short_name = Column(String(255), index=True, nullable=False)
     
     uu_id = Column(String(255), unique=True, index=True, nullable=False)
     slug = Column(String(255), index=True, nullable=False)
-    # ✅ OPTIONAL (matches requirement)
+
     short_description = Column(String(255), nullable=True)
     long_description = Column(Text, nullable=True)
-    hsm_code = Column(String(255), nullable=True)
+    hsn_code = Column(String(255), nullable=True)
     sku_code = Column(String(255), nullable=True)
 
     is_active = Column(Boolean, default=True)

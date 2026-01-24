@@ -34,14 +34,6 @@ def refresh_token(payload: RefreshTokenRequest,db: Session = Depends(get_db)
 
 
 
-# @router.post("/logout", response_model=APIResponse[None])
-# def logout(current_user = Depends(get_current_user) ):
-#     # Stateless logout (frontend deletes tokens)
-#     return {
-#         "status": 200,
-#         "message": "Logged out successfully",
-#         "data": None
-#     }
 
 
 @router.post("/logout", response_model=APIResponse[None])

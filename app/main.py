@@ -22,10 +22,26 @@ from app.api.v1.router import api_router
 from app.models import user,category,product,uom,token_blacklist # noqa
 
 import app.core.cloudinary  # noqa
+from fastapi.middleware.cors import CORSMiddleware
 
 
 
 app = FastAPI(title="MyVegiz API")
+
+
+# -----------------------------
+# CORS CONFIGURATION
+# -----------------------------
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",   # React (Vite)
+        "http://127.0.0.1:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.exception_handler(AppException)

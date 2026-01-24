@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime
+from sqlalchemy import Column, Integer, String, Boolean, DateTime,ForeignKey
 from sqlalchemy.sql import func
 from app.db.base import Base
 
@@ -7,6 +7,11 @@ class Category(Base):
     __tablename__ = "categories"
 
     id = Column(Integer, primary_key=True, index=True)
+    main_category_id = Column(
+        Integer,
+        ForeignKey("main_categories.id"),
+        index=True
+    )
     uu_id = Column(String(255), unique=True, index=True, nullable=False)
     category_name = Column(String(255), nullable=False)
     slug = Column(String(255), index=True, nullable=False)

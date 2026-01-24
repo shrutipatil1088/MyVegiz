@@ -54,6 +54,18 @@ def create_product(
     if not category:
         raise AppException(status=404, message="Category not found")
 
+    #  Sub-category OPTIONAL
+    if product.sub_category_id is not None:
+        from app.models.sub_category import SubCategory
+
+        sub_category = db.query(SubCategory).filter(
+            SubCategory.id == product.sub_category_id,
+            SubCategory.is_delete == False
+        ).first()
+
+        if not sub_category:
+            raise AppException(status=404, message="Sub category not found")
+
     uu_id = str(uuid.uuid4())
     slug = generate_slug(product.product_name)
 
@@ -63,12 +75,13 @@ def create_product(
     db_product = Product(
         uu_id=uu_id,
         category_id=product.category_id,
+        sub_category_id=product.sub_category_id,
         product_name=product.product_name,
         product_short_name=product.product_short_name,
         slug=slug,
         short_description=product.short_description,
         long_description=product.long_description,
-        hsm_code=product.hsm_code,
+        hsn_code=product.hsn_code,
         sku_code=product.sku_code,
         is_active=product.is_active
     )
@@ -121,13 +134,46 @@ def update_product(
     if not product:
         raise AppException(status=404, message="Product not found")
 
+     # ---------- CATEGORY UPDATE (OPTIONAL) ----------
+    if data.category_id is not None:
+        category = db.query(Category).filter(
+            Category.id == data.category_id,
+            Category.is_delete == False
+        ).first()
+
+        if not category:
+            raise AppException(status=404, message="Category not found")
+
+        product.category_id = data.category_id
+
+      # ---------- SUB CATEGORY UPDATE (OPTIONAL) ----------
+    if data.sub_category_id is not None:
+        from app.models.sub_category import SubCategory
+
+        sub_category = db.query(SubCategory).filter(
+            SubCategory.id == data.sub_category_id,
+            SubCategory.is_delete == False
+        ).first()
+
+        if not sub_category:
+            raise AppException(status=404, message="Sub category not found")
+
+        # 🔒 Ensure sub-category belongs to category
+        if data.category_id and sub_category.category_id != data.category_id:
+            raise AppException(
+                status=400,
+                message="Sub category does not belong to selected category"
+            )
+
+        product.sub_category_id = data.sub_category_id
+
     # 🔐 UPDATE ONLY PROVIDED FIELDS
     if data.product_name is not None:
         product.product_name = data.product_name
+        product.slug = generate_slug(data.product_name)  
 
     if data.product_short_name is not None:
         product.product_short_name = data.product_short_name
-        product.slug = generate_slug(data.product_short_name)
 
     if data.short_description is not None:
         product.short_description = data.short_description
@@ -135,8 +181,8 @@ def update_product(
     if data.long_description is not None:
         product.long_description = data.long_description
 
-    if data.hsm_code is not None:
-        product.hsm_code = data.hsm_code
+    if data.hsn_code is not None:
+        product.hsn_code = data.hsn_code
 
     if data.sku_code is not None:
         product.sku_code = data.sku_code
@@ -165,7 +211,6 @@ def update_product(
     db.commit()
 
 
-    db.commit()
     return db.query(Product).options(
     joinedload(Product.images)
     ).filter(Product.id == product.id).first()

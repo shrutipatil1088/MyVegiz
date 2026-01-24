@@ -6,16 +6,19 @@ import re
 
 
 class CategoryCreate(BaseModel):
+    main_category_id: int
     category_name: str
     is_active: bool = True
 
     @classmethod
     def as_form(
         cls,
+        main_category_id: int = Form(...),
         category_name: str = Form(...),
         is_active: bool = Form(True),
     ):
         return cls(
+            main_category_id=main_category_id,
             category_name=category_name,
             is_active=is_active,
         )
@@ -39,6 +42,7 @@ class CategoryCreate(BaseModel):
 
 class CategoryResponse(BaseModel):
     id: int
+    main_category_id: Optional[int] = None
     uu_id: str
     category_name: str
     slug: str
@@ -52,16 +56,19 @@ class CategoryResponse(BaseModel):
 
 
 class CategoryUpdate(BaseModel):
+    main_category_id: Optional[int] = None
     category_name: Optional[str] = None
     is_active: Optional[bool] = None
 
     @classmethod
     def as_form(
         cls,
+        main_category_id: Optional[int] = Form(None),
         category_name: Optional[str] = Form(None),
         is_active: Optional[bool] = Form(None),
     ):
         return cls(
+            main_category_id=main_category_id,
             category_name=category_name.strip() if category_name else None,
             is_active=is_active,
         )

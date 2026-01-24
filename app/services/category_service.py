@@ -9,6 +9,7 @@ from app.models.category import Category
 from app.schemas.category import CategoryCreate
 from app.core.exceptions import AppException
 import cloudinary.uploader
+from app.models.main_category import MainCategory
 
 
 from app.schemas.category import CategoryUpdate
@@ -50,6 +51,15 @@ def create_category(
     if not category_image:
         raise AppException(status=400, message="Category image is required")
 
+    # Validate main category
+    main_category = db.query(MainCategory).filter(
+        MainCategory.id == category.main_category_id,
+    ).first()
+
+    
+    if not main_category:
+        raise AppException(status=404, message="Main category not found")
+
 
 
     # Generate UUID & Slug
@@ -71,6 +81,7 @@ def create_category(
 
     db_category = Category(
         uu_id=uu_id,
+        main_category_id=category.main_category_id,  
         category_name=category.category_name,
         slug=slug,
         category_image=image_url,
@@ -115,6 +126,18 @@ def update_category(
 
     if not category:
         raise AppException(status=404, message="Category not found")
+
+    #  Update main category if provided
+    if category_data.main_category_id is not None:
+        main_category = db.query(MainCategory).filter(
+            MainCategory.id == category_data.main_category_id,
+        ).first()
+
+        if not main_category:
+            raise AppException(status=404, message="Main category not found")
+
+        category.main_category_id = category_data.main_category_id
+
 
     # ---------- NAME + SLUG ----------
     if category_data.category_name is not None:
