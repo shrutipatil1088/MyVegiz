@@ -7,14 +7,30 @@ from app.core.security import create_access_token, create_refresh_token
 
 
 def register_and_login_customer(db: Session, data):
-    # Check if customer already exists
-    exists = db.query(Customer).filter(
+    
+    # Email already exists (not deleted)
+    email_exists = db.query(Customer).filter(
+        Customer.email == data.email,
+        Customer.is_delete == False
+    ).first()
+
+    if email_exists:
+        raise AppException(
+            status=400,
+            message="Email already registered"
+        )
+
+    # Contact already exists (not deleted)
+    contact_exists = db.query(Customer).filter(
         Customer.contact == data.contact,
         Customer.is_delete == False
     ).first()
 
-    if exists:
-        raise AppException(status=400, message="Customer already exists")
+    if contact_exists:
+        raise AppException(
+            status=400,
+            message="Contact number already registered"
+        )
 
     customer = Customer(
         uu_id=str(uuid.uuid4()),
