@@ -119,11 +119,12 @@ def send_otp(db: Session, mobile: str):
 
 
 def verify_otp(db: Session, mobile: str, otp: str):
+    now = datetime.now(timezone.utc)
     otp_entry = (
         db.query(MobileOTP)
         .filter(
             MobileOTP.mobile == mobile,
-            MobileOTP.is_verified == False
+            MobileOTP.expires_at > now
         )
         .order_by(MobileOTP.created_at.desc())
         .first()
@@ -138,7 +139,7 @@ def verify_otp(db: Session, mobile: str, otp: str):
     if otp_entry.otp != otp:
         raise AppException(status=401, message="Incorrect OTP.")
 
-    otp_entry.is_verified = True
+    db.delete(otp_entry)
     db.commit()
 
     customer = db.query(Customer).filter(
